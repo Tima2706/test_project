@@ -1,0 +1,47 @@
+{
+  "users": [
+    {
+      "id": 1,
+      "name": "Admin User",
+      "email": "admin@mail.com",
+      "password": "123456",
+      "role": "admin"
+    },
+    {
+      "id": 2,
+      "name": "Manager User",
+      "email": "manager@mail.com",
+      "password": "123456",
+      "role": "manager"
+    },
+    {
+      "id": 3,
+      "name": "Regular User",
+      "email": "user@mail.com",
+      "password": "123456",
+      "role": "user"
+    },
+    {
+      "id": 4,
+      "name": "Guest User",
+      "email": "guest@mail.com",
+      "password": "123456",
+      "role": "guest"
+    },
+    {
+      "id": 5,
+      "name": "azizdev",
+      "email": "azizsobirovdev@gmail.com",
+      "password": "12345678",
+      "role": "admin"
+    },
+    {
+      "id": 6,
+      "name": "aziz",
+      "email": "azizsobirovdev2@gmail.com",
+      "password": "12345678",
+      "role": "user"
+    }
+  ],
+  "refreshTokens": []
+}
