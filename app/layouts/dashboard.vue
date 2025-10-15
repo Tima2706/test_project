@@ -63,6 +63,10 @@ const items: NavigationMenuItem[] = [
           orientation="vertical"
         />
       </template>
+
+      <template #footer>
+        <UButton class="w-full justify-center" color="error">Logout</UButton>
+      </template>
     </UDashboardSidebar>
 
     <div class="p-5">
