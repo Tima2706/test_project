@@ -330,8 +330,7 @@
                 ><code>{
   "name": "John Doe",
   "email": "john@example.com",
-  "password": "123456",
-  "role": "user"
+  "password": "123456"
 }</code></pre>
               </div>
             </UCard>

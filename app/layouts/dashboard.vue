@@ -65,7 +65,9 @@ const items: NavigationMenuItem[] = [
       </template>
 
       <template #footer>
-        <UButton class="w-full justify-center" color="error">Logout</UButton>
+        <UButton class="w-full justify-center" color="error" to="/">
+          Logout
+        </UButton>
       </template>
     </UDashboardSidebar>
 

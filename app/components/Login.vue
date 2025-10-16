@@ -25,6 +25,7 @@ const schema = z.object();
 type Schema = z.output<typeof schema>;
 
 async function onSubmit(payload: FormSubmitEvent<Schema>) {
+  router.push('/dashboard');
   // try {
   //   if (result.success) {
   //     toast.add({
