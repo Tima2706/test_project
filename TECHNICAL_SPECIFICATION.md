@@ -27,7 +27,6 @@ const schema = z.object({
 - email (string, email, required)
 - password (string, min 6, required)
 - confirmPassword (string, must match password)
-- role (select: user, manager, admin - ixtiyoriy)
 
 ### 4. Middleware yaratish
 
