@@ -5,7 +5,6 @@ export default defineNuxtConfig({
   devtools: { enabled: true },
   modules: ["@nuxt/image", "@nuxt/ui", "@pinia/nuxt"],
   css: ["@/assets/css/main.css"],
-
   app: {
     head: {
       title: "Nuxt 3 | Test Task",

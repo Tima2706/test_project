@@ -1,7 +1,10 @@
 <script setup lang="ts">
 definePageMeta({
   layout: "dashboard",
+  middleware: ['role'],
+  allowedRoles: ['admin', 'manager', 'user'],
 });
+
 </script>
 
 <template>

@@ -1,28 +1,131 @@
-import { defineStore } from "pinia";
+import { defineStore } from 'pinia'
+import type { User, LoginData } from '~/types/auth.interface'
+import type { MenuItem } from '~/types/menu.interface'
+import { menuItems } from '~/utils/menuItems'
 
-interface User {
-  id: string;
-  email: string;
-  name?: string;
-  role?: string;
-}
+export const useAuthStore = defineStore('auth', () => {
+    const user = ref<User | null>(null)
+    const isLoading = ref(false)
+    const error = ref<string | null>(null)
 
-interface LoginData {
-  email: string;
-  password: string;
-}
+    const accessCookie = useCookie<string | null>('accessToken', { sameSite: 'lax' })
+    const refreshCookie = useCookie<string | null>('refreshToken', { sameSite: 'lax' })
 
-interface RegisterData {
-  name: string;
-  email: string;
-  password: string;
-  role?: string;
-}
+    const isAuthenticated = computed(() => !!user.value)
 
-export const useAuthStore = defineStore("auth", () => {
-  const user = ref<User | null>(null);
+    const accessToken = computed(() => accessCookie.value)
 
-  return {
-    user,
-  };
-});
+    const hasToken = computed(() => !!accessCookie.value)
+
+    async function setSessionFromResponse(resp: LoginData) {
+        accessCookie.value = resp.accessToken
+        refreshCookie.value = resp.refreshToken
+        user.value = resp.user
+    }
+
+    async function login(payload: { email: string; password: string }) {
+        isLoading.value = true
+        error.value = null
+        try {
+            const resp = await $fetch<LoginData>('/api/auth/login', {
+                method: 'POST',
+                body: payload,
+            })
+            await setSessionFromResponse(resp)
+            return resp
+        } catch (e: any) {
+            error.value = e?.data?.message || e?.message || 'Login failed'
+            throw e
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    async function register(payload: { name: string; email: string; password: string; role?: string }) {
+        isLoading.value = true
+        error.value = null
+        try {
+            const resp = await $fetch<LoginData>('/api/auth/register', {
+                method: 'POST',
+                body: payload,
+            })
+            await setSessionFromResponse(resp)
+            return resp
+        } catch (e: any) {
+            error.value = e?.data?.message || e?.message || 'Register failed'
+            throw e
+        } finally {
+            isLoading.value = false
+        }
+    }
+
+    async function fetchMe() {
+        const access = accessCookie.value
+        if (!access) return null
+        try {
+            const resp = await $fetch<{ user: User }>('/api/auth/me', {
+                method: 'GET',
+                headers: { Authorization: `Bearer ${access}` },
+            })
+            user.value = resp.user
+            return resp.user
+        } catch {
+            return null
+        }
+    }
+
+    async function refreshToken() {
+        const refresh = refreshCookie.value
+        if (!refresh) return null
+
+        try {
+            const resp = await $fetch<{ accessstoken: string }>('/api/auth/refresh', {
+                method: 'POST',
+                body: { refreshToken: refresh },
+            })
+            accessCookie.value = resp.accessstoken
+            return resp.accessstoken
+        } catch (e) {
+            await logout()
+            return null
+        }
+    }
+
+    async function logout() {
+        accessCookie.value = null
+        refreshCookie.value = null
+        user.value = null
+        try {
+            await $fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
+        } catch {}
+    }
+    const filteredMenu = computed<MenuItem[]>(() => {
+        const role = user.value?.role
+        if (!role) return []
+
+        const filterByRole = (items: MenuItem[]): MenuItem[] =>
+            items
+                .filter(item => item.roles.includes(role))
+                .map(item => ({
+                    ...item,
+                    children: item.children ? filterByRole(item.children) : [],
+                }))
+
+        return filterByRole(menuItems)
+    })
+
+    return {
+        user,
+        isLoading,
+        error,
+        isAuthenticated,
+        accessToken,
+        hasToken,
+        filteredMenu,
+        login,
+        register,
+        fetchMe,
+        refreshToken,
+        logout,
+    }
+})

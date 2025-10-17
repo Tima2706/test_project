@@ -1,3 +1,9 @@
+<script lang="ts" setup>
+import { useAuthStore } from '~/stores/auth'
+
+const auth = useAuthStore()
+</script>
+
 <template>
   <div class="min-h-screen bg-gray-50">
     <!-- Header with Login Button -->
@@ -8,8 +14,12 @@
             <h1 class="text-2xl font-bold text-primary">Auth Task</h1>
           </div>
           <div class="flex items-center space-x-4">
-            <UButton to="/auth" variant="solid" color="primary">
-              Login
+            <UButton
+                :to="auth.isAuthenticated ? '/dashboard' : '/auth'"
+                variant="solid"
+                color="primary"
+            >
+              {{ auth.isAuthenticated ? 'Go to Dashboard' : 'Login' }}
             </UButton>
           </div>
         </div>

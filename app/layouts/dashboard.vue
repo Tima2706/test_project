@@ -1,56 +1,26 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from "@nuxt/ui";
 
-const items: NavigationMenuItem[] = [
-  {
-    // ADMIN, MANAGER, USER
-    label: "Home",
-    icon: "i-lucide-house",
-    to: "/dashboard",
-  },
-  {
-    // ADMIN, MANAGER, USER
-    label: "Inbox",
-    icon: "i-lucide-inbox",
-    badge: "4",
-    to: "/inbox",
-  },
-  {
-    // MANAGER
-    label: "Contacts",
-    icon: "i-lucide-users",
-    to: "/contacts",
-  },
-  {
-    // ADMIN, MANAGER, USER
-    label: "Settings",
-    icon: "i-lucide-settings",
-    defaultOpen: true,
-    children: [
-      {
-        label: "General",
-        to: "/settings",
-      },
-      {
-        // ADMIN
-        label: "Members",
-        to: "/settings/members",
-      },
-      {
-        label: "Notifications",
-        to: "/settings/notifications",
-      },
-    ],
-  },
-];
+
+
+const toast = useToast();
+const router = useRouter();
+const auth = useAuthStore();
+
+
+const handleLogout = async () => {
+  await auth.logout();
+  toast.add({title: 'You have been logged out', color: 'info'})
+  router.push('/')
+
+};
 </script>
 
 <template>
   <UDashboardGroup>
     <UDashboardSidebar
-      collapsible
-      resizable
-      :ui="{ footer: 'border-t border-default' }"
+        collapsible
+        resizable
+        :ui="{ footer: 'border-t border-default' }"
     >
       <template #header="{ collapsed }">
         <div class="text-2xl text-primary font-bold">Auth Task</div>
@@ -58,21 +28,21 @@ const items: NavigationMenuItem[] = [
 
       <template #default="{ collapsed }">
         <UNavigationMenu
-          :collapsed="collapsed"
-          :items="items"
-          orientation="vertical"
+            :collapsed="collapsed"
+            :items="auth.filteredMenu"
+            orientation="vertical"
         />
       </template>
 
       <template #footer>
-        <UButton class="w-full justify-center" color="error" to="/">
+        <UButton @click="handleLogout" class="w-full justify-center" color="error">
           Logout
         </UButton>
       </template>
     </UDashboardSidebar>
 
     <div class="p-5">
-      <slot />
+      <slot/>
     </div>
   </UDashboardGroup>
 </template>
