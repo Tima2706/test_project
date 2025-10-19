@@ -1,15 +1,15 @@
-import { defineStore } from 'pinia'
-import type { User, LoginData } from '~/types/auth.interface'
-import type { MenuItem } from '~/types/menu.interface'
-import { menuItems } from '~/utils/menuItems'
+import {defineStore} from 'pinia'
+import type {User, LoginData} from '~/types/auth.interface'
+import type {MenuItem} from '~/types/menu.interface'
+import {menuItems} from '~/utils/menuItems'
 
 export const useAuthStore = defineStore('auth', () => {
     const user = ref<User | null>(null)
     const isLoading = ref(false)
     const error = ref<string | null>(null)
 
-    const accessCookie = useCookie<string | null>('accessToken', { sameSite: 'lax' })
-    const refreshCookie = useCookie<string | null>('refreshToken', { sameSite: 'lax' })
+    const accessCookie = useCookie<string | null>('accessToken', {sameSite: 'lax'})
+    const refreshCookie = useCookie<string | null>('refreshToken', {sameSite: 'lax'})
 
     const isAuthenticated = computed(() => !!user.value)
 
@@ -62,6 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
     async function fetchMe() {
         const access = accessCookie.value
         if (!access) return null
+
         try {
             const resp = await $fetch<{ user: User }>('/api/auth/me', {
                 method: 'GET',
@@ -69,36 +70,67 @@ export const useAuthStore = defineStore('auth', () => {
             })
             user.value = resp.user
             return resp.user
-        } catch {
-            return null
+        } catch (err: any) {
+            console.warn('⚠️ fetchMe failed, trying to refresh...', err?.response?._data || err)
+
+            const newToken = await refreshToken()
+            if (!newToken) {
+                console.error('❌ Refresh failed during fetchMe')
+                await logout()
+                return null
+            }
+
+            try {
+                const resp = await $fetch<{ user: User }>('/api/auth/me', {
+                    method: 'GET',
+                    headers: { Authorization: `Bearer ${newToken}` },
+                })
+                user.value = resp.user
+                return resp.user
+            } catch (e) {
+                console.error('❌ Second fetchMe attempt failed even after refresh', e)
+                await logout()
+                return null
+            }
         }
     }
 
+
     async function refreshToken() {
         const refresh = refreshCookie.value
-        if (!refresh) return null
+        if (!refresh) {
+            console.warn('Нет refresh токена в cookie')
+            return null
+        }
 
         try {
-            const resp = await $fetch<{ accessstoken: string }>('/api/auth/refresh', {
+            const resp = await $fetch<{ accessToken: string }>('/api/auth/refresh', {
                 method: 'POST',
                 body: { refreshToken: refresh },
             })
-            accessCookie.value = resp.accessstoken
-            return resp.accessstoken
-        } catch (e) {
+            console.log('✅ Token refreshed:', resp)
+            accessCookie.value = resp.accessToken
+            return resp.accessToken
+        } catch (e: any) {
+            console.error('❌ Refresh failed:', e)
             await logout()
             return null
         }
     }
+
+
 
     async function logout() {
         accessCookie.value = null
         refreshCookie.value = null
         user.value = null
         try {
-            await $fetch('/api/auth/logout', { method: 'POST' }).catch(() => {})
-        } catch {}
+            await $fetch('/api/auth/logout', {method: 'POST'}).catch(() => {
+            })
+        } catch {
+        }
     }
+
     const filteredMenu = computed<MenuItem[]>(() => {
         const role = user.value?.role
         if (!role) return []
